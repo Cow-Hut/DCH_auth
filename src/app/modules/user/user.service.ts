@@ -1,9 +1,7 @@
 import httpStatus from 'http-status';
-import { Secret } from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
-import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
-import { jwtHelpers } from '../../../helpers/jwtHelpers';
 import { IAdmin } from '../admin/admin.interface';
 import { Admin } from '../admin/admin.model';
 import { IUser } from './user.interface';
@@ -36,7 +34,7 @@ const createUser = async (user: IUser): Promise<IUser | null> => {
     if (user.role === 'buyer' && user.budget === 0) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        'Buyer must have a non-zero budget'
+        'Buyer must have a minimum range budget'
       );
     }
 
@@ -64,7 +62,6 @@ const createUser = async (user: IUser): Promise<IUser | null> => {
     // Rethrow the error for higher-level error handling
     throw error;
   }
-
   // Return the user data of the created user
   return newUserAllData;
 };
@@ -112,32 +109,11 @@ const deleteUser = async (id: string): Promise<IUser | null> => {
 };
 
 // Get Profile Data
-const getMyProfile = async (token: string): Promise<IUser | IAdmin | null> => {
-  console.log('Token => 🔖🔖', token);
-
-  let verifiedToken = null;
-
-  try {
-    verifiedToken = jwtHelpers.verifyToken(
-      token as string,
-      config.jwt.secret as Secret
-    );
-  } catch (err) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Invalid Refresh Token');
-  }
-
-  console.log('verifiedToken =======', verifiedToken);
-
-  const { phone, role } = verifiedToken;
+const getMyProfile = async (
+  token: JwtPayload
+): Promise<IUser | IAdmin | null> => {
+  const { phone, role } = token;
   console.log('PHONE 📞', phone);
-
-  // if (role !== 'admin') {
-  //   const result = await User.findOne({ phoneNumber: phone });
-  //   return result;
-  // } else {
-  //   const result = await Admin.findOne({ phoneNumber: phone });
-  //
-  // }
 
   const result =
     role !== 'admin'
@@ -150,24 +126,11 @@ const getMyProfile = async (token: string): Promise<IUser | IAdmin | null> => {
 // update profile Data
 const updateMyProfile = async (
   payload: Partial<IUser | IAdmin>,
-  token: string
+  token: JwtPayload
 ): Promise<IUser | IAdmin | null> => {
   console.log(payload);
-  console.log('Token => 🔖🔖', token);
 
-  let verifiedToken = null;
-
-  try {
-    verifiedToken = jwtHelpers.verifyToken(
-      token as string,
-      config.jwt.secret as Secret
-    );
-  } catch (err) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Invalid Refresh Token');
-  }
-  console.log('verifiedToken =======', verifiedToken);
-
-  const { phone, role } = verifiedToken;
+  const { phone, role } = token;
   console.log('PHONE 📞', phone);
 
   const userDetails =
@@ -178,7 +141,7 @@ const updateMyProfile = async (
   console.log('userDetails', userDetails);
 
   if (!userDetails) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'This cow is invalid');
+    throw new ApiError(httpStatus.NOT_FOUND, 'This user is invalid');
   }
 
   if (userDetails?.phoneNumber !== phone || userDetails?.role !== role) {

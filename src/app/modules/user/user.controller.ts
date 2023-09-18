@@ -1,5 +1,6 @@
 import { Request, RequestHandler, Response } from 'express';
 import httpStatus from 'http-status';
+import { JwtPayload } from 'jsonwebtoken';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { IAdmin } from '../admin/admin.interface';
@@ -80,9 +81,8 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
 
 // Get Profile Data
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
-  const token = req.headers.authorization;
-
-  const result = await UserService.getMyProfile(token as string);
+  const token = req.user;
+  const result = await UserService.getMyProfile(token as JwtPayload);
 
   sendResponse<IUser | IAdmin>(res, {
     statusCode: httpStatus.OK,
@@ -95,11 +95,11 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
 // update my profile
 const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
   const updatedData = req.body;
-  const token = req.headers.authorization;
+  const token = req.user;
 
   const result = await UserService.updateMyProfile(
     updatedData,
-    token as string
+    token as JwtPayload
   );
 
   sendResponse<IUser | IAdmin>(res, {
