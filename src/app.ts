@@ -2,6 +2,7 @@ import cors from 'cors';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
+import routes from './app/routes';
 
 import cookieParser from 'cookie-parser';
 
@@ -15,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // routes
-// app.use('/api/v1', routes);
+app.use('/api/v1', routes);
 
 // testing purpose
 app.get('/', async (req: Request, res: Response) => {

@@ -1,13 +1,15 @@
+import { Request, Response } from 'express';
+import httpStatus from 'http-status';
 import config from '../../../config';
 import catchAsync from '../../../shared/catchAsync';
-import { Request, Response } from 'express';
-import { ILoginUserResponse, IRefreshTokenResponse } from './auth.interface';
 import sendResponse from '../../../shared/sendResponse';
-import httpStatus from 'http-status';
+import { ILoginUserResponse, IRefreshTokenResponse } from './auth.interface';
 import { AuthService } from './auth.service';
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { ...loginData } = req.body;
+
+  console.log('loginData', loginData);
 
   const result = await AuthService.loginUser(loginData);
   const { refreshToken, ...others } = result;

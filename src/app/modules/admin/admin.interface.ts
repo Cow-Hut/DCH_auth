@@ -5,6 +5,7 @@ import { IUser } from '../user/user.interface';
 export type IRole = 'admin';
 
 export type IAdmin = {
+  email?: string;
   phoneNumber: string;
   role: IRole;
   password: string;
@@ -18,7 +19,7 @@ export type IAdmin = {
 export type AdminModel = {
   isUserExist(
     phoneNumber: string
-  ): Promise<Pick<IUser, 'phoneNumber' | 'role' | 'password'>>;
+  ): Promise<Pick<IUser, 'email' | 'phoneNumber' | 'role' | 'password'>>;
   isPasswordMatch(
     givenPassword: string,
     savedPassword: string

@@ -7,16 +7,13 @@ import { IUser, UserModel } from './user.interface';
 
 const UserSchema: Schema<IUser, UserModel> = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true },
+    email: { type: String },
     phoneNumber: { type: String, required: true, unique: true },
     role: { type: String, enum: role, required: true },
     password: { type: String, required: true, select: 0 },
     name: {
+      type: String,
       required: true,
-      type: {
-        firstName: { type: String, required: true },
-        lastName: { type: String, required: true },
-      },
     },
     address: { type: String, required: true },
     budget: { type: Number, required: true },

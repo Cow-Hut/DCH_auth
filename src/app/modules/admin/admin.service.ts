@@ -1,16 +1,16 @@
-import mongoose from 'mongoose';
-import { IAdmin } from './admin.interface';
-import { Admin } from './admin.model';
 import httpStatus from 'http-status';
+import { Secret } from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
+import { jwtHelpers } from '../../../helpers/jwtHelpers';
 import {
   ILoginUser,
   ILoginUserResponse,
   IRefreshTokenResponse,
 } from '../auth/auth.interface';
-import { jwtHelpers } from '../../../helpers/jwtHelpers';
-import config from '../../../config';
-import { Secret } from 'jsonwebtoken';
+import { IAdmin } from './admin.interface';
+import { Admin } from './admin.model';
 
 const createAdmin = async (admin: IAdmin): Promise<IAdmin | null> => {
   let newAdminAllData = null;
@@ -67,7 +67,7 @@ const loginUser = async (payload: ILoginUser): Promise<ILoginUserResponse> => {
       role,
     },
     config.jwt.secret as Secret,
-    config.jwt.expire_in as string
+    config.jwt.expires_in as string
   );
 
   const refreshToken = jwtHelpers.createToken(
@@ -76,7 +76,7 @@ const loginUser = async (payload: ILoginUser): Promise<ILoginUserResponse> => {
       role,
     },
     config.jwt.refresh_secret as Secret,
-    config.jwt.refresh_expire_in as string
+    config.jwt.refresh_expires_in as string
   );
 
   // console.log({ accessToken, refreshToken, needsPasswordChange });
@@ -113,7 +113,7 @@ const refreshToken = async (token: string): Promise<IRefreshTokenResponse> => {
   const newAccessToken = jwtHelpers.createToken(
     { phoneNumber: isUserExist.phoneNumber, role: isUserExist.role },
     config.jwt.secret as Secret,
-    config.jwt.expire_in as string
+    config.jwt.expires_in as string
   );
 
   return { accessToken: newAccessToken };

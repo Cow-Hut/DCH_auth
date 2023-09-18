@@ -1,61 +1,71 @@
+import httpStatus from 'http-status';
+import { Secret } from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import config from '../../../config';
+import ApiError from '../../../errors/ApiError';
+import { jwtHelpers } from '../../../helpers/jwtHelpers';
+import { IAdmin } from '../admin/admin.interface';
+import { Admin } from '../admin/admin.model';
 import { IUser } from './user.interface';
 import { User } from './user.model';
-import ApiError from '../../../errors/ApiError';
-import httpStatus from 'http-status';
-import { jwtHelpers } from '../../../helpers/jwtHelpers';
-import config from '../../../config';
-import { Secret } from 'jsonwebtoken';
-import { Admin } from '../admin/admin.model';
-import { IAdmin } from '../admin/admin.interface';
 
-// create a user through sign in
+// Define a function to create a user
 const createUser = async (user: IUser): Promise<IUser | null> => {
   let newUserAllData = null;
 
-  console.log(user.role);
-
+  // Start a Mongoose session
   const session = await mongoose.startSession();
 
   try {
+    // Begin a transaction within the session
     session.startTransaction();
 
+    // Depending on the user's role, set default values for budget and income
     if (user.role === 'seller') {
-      if (!user.budget || user.budget) {
+      if (!user.budget || user.budget === 0) {
         user.budget = 0;
         user.income = 0;
       }
     } else {
-      if (!user.income || user.income) {
+      if (!user.income || user.income === 0) {
         user.income = 0;
       }
     }
 
-    if (user.role === 'buyer') {
-      if (user.budget === 0) {
-        throw new ApiError(
-          httpStatus.BAD_REQUEST,
-          'Buyer must need some amount of Budget'
-        );
-      }
+    // Check if the user's role is 'buyer' and if their budget is zero, throw an error
+    if (user.role === 'buyer' && user.budget === 0) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Buyer must have a non-zero budget'
+      );
     }
 
+    // Create a new user document in the database using the provided user data
     const newUser = await User.create([user], { session });
 
+    // Check if user creation was successful
     if (!newUser.length) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create User');
     }
 
+    // Retrieve the created user's data
     newUserAllData = newUser[0];
 
+    // Commit the transaction
     await session.commitTransaction();
+
+    // End the session
     await session.endSession();
   } catch (error) {
+    // If an error occurs, abort the transaction and end the session
     await session.abortTransaction();
     await session.endSession();
+
+    // Rethrow the error for higher-level error handling
     throw error;
   }
 
+  // Return the user data of the created user
   return newUserAllData;
 };
 
