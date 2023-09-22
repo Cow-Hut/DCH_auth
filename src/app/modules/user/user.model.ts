@@ -16,7 +16,7 @@ const UserSchema: Schema<IUser, UserModel> = new Schema<IUser>(
       required: true,
     },
     address: { type: String, required: true },
-    budget: { type: Number, required: true },
+    budget: { type: Number },
     income: { type: Number, required: true },
   },
   {
